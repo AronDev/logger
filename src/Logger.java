@@ -177,15 +177,20 @@ public class Logger extends javax.swing.JFrame {
         if (FTP_Data.Client == null) return null;
         ArrayList<String> logLines = new ArrayList<>();
 
-        try (InputStream inputStream = FTP_Data.Client.retrieveFileStream(filePath)) {
-            if (inputStream == null) return null;
-            String logContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            Collections.addAll(logLines, logContent.split("\\r?\\n"));
+        try {
+            FTPFile[] remoteFiles = FTP_Data.Client.listFiles(filePath);
+            if (remoteFiles.length > 0) {
+                InputStream inputStream = FTP_Data.Client.retrieveFileStream(filePath);
+                if (inputStream == null) return null;
+                String logContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+                Collections.addAll(logLines, logContent.split("\\r?\\n"));
 
-            if(!FTP_Data.Client.completePendingCommand()) {
-                System.out.println("[ERROR] File transfer failed!");
-                JOptionPane.showMessageDialog(null, "A fájlátvitel nem sikerült!", "ERROR", JOptionPane.ERROR_MESSAGE);
+                if(!FTP_Data.Client.completePendingCommand()) {
+                    System.out.println("[ERROR] File transfer failed!");
+                    JOptionPane.showMessageDialog(null, "A fájlátvitel nem sikerült!", "ERROR", JOptionPane.ERROR_MESSAGE);
+                }
             }
+        } catch (IOException ioe) {
         } catch (Exception e) {
             System.out.println("[ERROR] " + e.getMessage());
             JOptionPane.showMessageDialog(null, e.getMessage(), "ERROR", JOptionPane.ERROR_MESSAGE);
